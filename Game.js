@@ -1,7 +1,7 @@
-import { Node } from './Node.js';
+import { Node } from './Engine/Node.js';
 import { Card } from './Card.js';
 import { Message } from './Message.js';
-import { Label} from './Label.js';
+import { Label} from './Engine/Label.js';
 export class Game {
     constructor(body) {
         this.gameBoard = new Node('div', 'game-board');
@@ -10,8 +10,27 @@ export class Game {
         this.openedCards = [];
         this.matchedPairs = 0;
         this.shuffledCards = this.shuffle(this.allCards);
-        this.createGameBoard();
         this.body = body;
+
+        this.playButton = new Node('button', 'play-button');
+        this.playButton.element.textContent = 'Play Game';
+        this.playButton.element.style.position = 'absolute';
+        this.playButton.element.style.width = '300px';
+        this.playButton.element.style.fontSize = '45px';
+        this.playButton.element.style.fontFamily = 'cursive';
+        this.playButton.element.style.backgroundColor = 'transparent';
+        this.playButton.element.style.border = 'none';
+        this.playButton.element.style.left = `${window.innerWidth / 2.5}px`;
+        this.playButton.element.style.top = `${window.innerHeight / 1.5}px`;
+        this.playButton.element.addEventListener('click', () => this.startGame());
+        document.body.appendChild(this.playButton.element);
+    }
+
+    startGame() {
+        this.createGameBoard();
+        this.playButton.element.style.display = 'none';
+        this.gameBoard.element.style.display = 'grid';
+
     }
 
     getAllCards() {
@@ -53,7 +72,7 @@ export class Game {
         this.gameBoard.element.style.position = 'absolute';
         this.gameBoard.element.style.left = `${centerLeft}px`;
         this.gameBoard.element.style.top = `${centerTop}px`;
-
+        const initialCardZIndex = -1
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 const index = row * cols + col;
@@ -62,12 +81,21 @@ export class Game {
                     const frontImagePath = 'front.png';
                     const card = new Card(cardNumber, frontImagePath, this.shuffledCards[index], this.flipCard.bind(this));
                     card.setBackgroundImage();
-                    const left = col * (cardWidth + gap);
-                    const top = row * (cardHeight + gap);
                     card.element.style.position = 'absolute';
-                    card.element.style.left = `${left}px`;
-                    card.element.style.top = `${top}px`;
-                    card.appendTo(this.gameBoard.element);
+                    card.element.style.left = `${windowWidth /8}px`
+                    card.element.style.top = `${windowHeight /5}px`
+                    this.gameBoard.element.appendChild(card.element);
+                    card.element.style.zIndex = initialCardZIndex;
+                    gsap.to(card.element, {
+                        left: col * (cardWidth + gap),
+                        top: row * (cardHeight + gap),
+                        duration: 1,
+                        delay: 0.1 * index,
+                        onStart: () => {
+                            card.element.style.zIndex = 'auto';
+                        },
+                    });
+
                 }
             }
         }
@@ -97,13 +125,19 @@ export class Game {
             image.src = `images/${this.shuffledCards[index - 1]}`;
 
             image.onload = function () {
-                card.style.backgroundImage = `url(${image.src})`;
-                card.innerHTML = '';
-                this.openedCards.push(index);
-                if (this.openedCards.length === 2) {
-                    setTimeout(this.checkMatch.bind(this), 500);
-                }
+                gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlip(card, image.src) });
             }.bind(this);
+        }
+    }
+
+    finishFlip(card, imageUrl) {
+        card.style.backgroundImage = `url(${imageUrl})`;
+        gsap.to(card, { scaleX: 1, duration: 0.5 });
+        card.innerHTML = '';
+        this.openedCards.push(card.dataset.index);
+
+        if (this.openedCards.length === 2) {
+            setTimeout(this.checkMatch.bind(this), 500);
         }
     }
 
@@ -111,24 +145,33 @@ export class Game {
         const [index1, index2] = this.openedCards;
         const card1 = document.querySelector(`.card[data-index="${index1}"]`);
         const card2 = document.querySelector(`.card[data-index="${index2}"]`);
+    
         if (this.shuffledCards[index1 - 1] === this.shuffledCards[index2 - 1]) {
             card1.removeEventListener('click', this.flipCard);
             card2.removeEventListener('click', this.flipCard);
             this.openedCards = [];
             this.matchedPairs++;
             this.coins += 1000;
-            card1.style.visibility = 'hidden';
-            card2.style.visibility = 'hidden';
-            if (this.matchedPairs === this.shuffledCards.length / 2) {
-                this.gameBoard.element.style.display = 'none';
-                const winMessage = new Message('Congratulations! You won the game!', 'green');
-                document.body.appendChild(winMessage.element); 
-                setTimeout(() => {
-                    winMessage.element.style.display = 'none';
-                    this.gameBoard.element.style.display = 'grid';
-                    this.resetGame();
-                }, 3000);
-            }
+    
+            gsap.to([card1, card2], {
+                scale: 2,
+                duration: 1,
+                onComplete: () => {
+                    card1.style.visibility = 'hidden';
+                    card2.style.visibility = 'hidden';
+    
+                    if (this.matchedPairs === this.shuffledCards.length / 2) {
+                        this.gameBoard.element.style.display = 'none';
+                        const winMessage = new Message(`Congratulations! You won the game with ${this.coins} Coins!`, 'green');
+                        document.body.appendChild(winMessage.element);
+                        setTimeout(() => {
+                            winMessage.element.style.display = 'none';
+                            this.gameBoard.element.style.display = 'grid';
+                            this.resetGame();
+                        }, 3000);
+                    }
+                },
+            });
         } else {
             setTimeout(() => {
                 card1.style.backgroundImage = 'none';
@@ -140,12 +183,12 @@ export class Game {
             }, 500);
             this.openedCards = [];
             this.coins -= 500;
-
+    
             if (this.coins <= 0) {
                 this.gameBoard.element.style.display = 'none';
                 const losingMessage = new Message('Game Over! You ran out of coins.', 'black');
                 this.body.appendChild(losingMessage.element);
-
+    
                 setTimeout(() => {
                     losingMessage.element.style.display = 'none';
                     this.gameBoard.element.style.display = 'grid';
@@ -155,6 +198,7 @@ export class Game {
         }
         this.updateCoin();
     }
+    
 
     flipCardBack(index) {
         const card = document.querySelector(`.card[data-index="${index}"]`);

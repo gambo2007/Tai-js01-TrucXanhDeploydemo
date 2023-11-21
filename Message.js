@@ -1,4 +1,4 @@
-import { Node } from './Node.js';
+import { Node } from './Engine/Node.js';
 
 export class Message extends Node {
     constructor(text, color) {

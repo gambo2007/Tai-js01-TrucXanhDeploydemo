@@ -1,5 +1,5 @@
-import { Node } from './Node.js';
-import { Sprite } from './Sprite.js';
+import { Node } from './Engine/Node.js';
+import { Sprite } from './Engine/Sprite.js';
 
 export class Card extends Node {
     constructor(cardNumber, frontImagePath, imagePath, flipCardHandler) {
@@ -13,16 +13,15 @@ export class Card extends Node {
         this.element.style.cursor = 'pointer';
         this.element.style.textAlign = 'center';
         this.element.style.lineHeight = '100px';
+        this.element.style.opacity = '0.8'
 
-        // Use Sprite for the back image
         this.imageSprite = new Sprite(`images/${imagePath}`);
         this.imageSprite.appendTo(this.element);
 
-        // Use Sprite for the front image
         this.frontImageSprite = new Sprite(`images/${frontImagePath}`);
         this.frontImageSprite.appendTo(this.element);
 
-        this.flipCardHandler = flipCardHandler.bind(this); // Ensure proper binding
+        this.flipCardHandler = flipCardHandler.bind(this); 
         this.element.addEventListener('click', () => this.flipCardHandler(cardNumber));
     }
 
