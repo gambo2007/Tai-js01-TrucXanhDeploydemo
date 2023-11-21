@@ -11,7 +11,9 @@ export class Game {
         this.matchedPairs = 0;
         this.shuffledCards = this.shuffle(this.allCards);
         this.body = body;
-
+        this.flipsThisTurn = 0;
+        this.flippedThisTurn = new Set();
+        this.currentlyFlipped = []
         this.playButton = new Node('button', 'play-button');
         this.playButton.element.textContent = 'Play Game';
         this.playButton.element.style.position = 'absolute';
@@ -117,39 +119,39 @@ export class Game {
             this.gameBoard.element.appendChild(this.coin.element);
         }
     }
-
     flipCard(index) {
-        if (this.openedCards.length < 2 && !this.openedCards.includes(index)) {
+        if (this.currentlyFlipped.length < 2 && !this.currentlyFlipped.includes(index) && !this.openedCards.includes(index)) {
             const card = document.querySelector(`.card[data-index="${index}"]`);
             const image = new Image();
             image.src = `images/${this.shuffledCards[index - 1]}`;
 
             image.onload = function () {
-                gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlip(card, image.src) });
+                gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlip(card, image.src, index) });
             }.bind(this);
         }
     }
-
-    finishFlip(card, imageUrl) {
+    finishFlip(card, imageUrl, index) {
         card.style.backgroundImage = `url(${imageUrl})`;
         gsap.to(card, { scaleX: 1, duration: 0.5 });
         card.innerHTML = '';
-        this.openedCards.push(card.dataset.index);
+        this.openedCards.push(index);
+        this.currentlyFlipped.push(index);
 
-        if (this.openedCards.length === 2) {
+        if (this.currentlyFlipped.length === 2) {
             setTimeout(this.checkMatch.bind(this), 500);
         }
     }
 
     checkMatch() {
-        const [index1, index2] = this.openedCards;
+        const [index1, index2] = this.currentlyFlipped;
         const card1 = document.querySelector(`.card[data-index="${index1}"]`);
         const card2 = document.querySelector(`.card[data-index="${index2}"]`);
     
         if (this.shuffledCards[index1 - 1] === this.shuffledCards[index2 - 1]) {
-            card1.removeEventListener('click', this.flipCard);
-            card2.removeEventListener('click', this.flipCard);
+            card1.removeEventListener('click', () => this.flipCard(index1));
+            card2.removeEventListener('click', () => this.flipCard(index2));
             this.openedCards = [];
+            this.currentlyFlipped = [];
             this.matchedPairs++;
             this.coins += 1000;
     
@@ -174,12 +176,15 @@ export class Game {
             });
         } else {
             setTimeout(() => {
-                card1.style.backgroundImage = 'none';
-                card2.style.backgroundImage = 'none';
-                card1.innerHTML = card1.dataset.initialValue;
-                card2.innerHTML = card2.dataset.initialValue;
-                this.flipCardBack(index1);
-                this.flipCardBack(index2);
+                this.flipCardBackHandler(index1);
+                this.flipCardBackHandler(index2);
+                this.openedCards = [];
+                this.currentlyFlipped = [];
+
+            // Reset flips when two cards have been processed
+            if (this.openedCards.length === 2) {
+                this.openedCards = [];
+            }
             }, 500);
             this.openedCards = [];
             this.coins -= 500;
@@ -197,13 +202,19 @@ export class Game {
             }
         }
         this.updateCoin();
+        
+    }
+    flipCardBackHandler(index) {
+        const card = document.querySelector(`.card[data-index="${index}"]`);
+        gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlipBack(card) });
     }
     
-
-    flipCardBack(index) {
-        const card = document.querySelector(`.card[data-index="${index}"]`);
-        card.style.backgroundImage = `url(images/front.png)`;
+    finishFlipBack(card) {
+        card.style.backgroundImage = 'url(images/front.png)';
+        gsap.to(card, { scaleX: 1, duration: 0.5 });
         card.innerHTML = '';
+        this.openedCards.pop();
+        this.flipsThisTurn--;
     }
 
     updateCoin() {

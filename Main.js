@@ -11,15 +11,15 @@ body.style.backgroundSize = 'cover';
 body.style.backgroundRepeat = 'no-repeat';
 body.style.backgroundPosition = 'center center';
 
-const backgroundMusic = new Audio('music/music.mp3');
-backgroundMusic.volume = 1;
-backgroundMusic.addEventListener('canplaythrough', () => {
-    backgroundMusic.play();
-});
-document.addEventListener('click', () => {
-    backgroundMusic.play();
-});
-body.appendChild(backgroundMusic);
+// const backgroundMusic = new Audio('music/music.mp3');
+// backgroundMusic.volume = 1;
+// backgroundMusic.addEventListener('canplaythrough', () => {
+//     backgroundMusic.play();
+// });
+// document.addEventListener('click', () => {
+//     backgroundMusic.play();
+// });
+// body.appendChild(backgroundMusic);
 
 const game = new Game(body);
 const gameBoard = game.getGameBoard();
