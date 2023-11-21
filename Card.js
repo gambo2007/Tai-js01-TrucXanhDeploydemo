@@ -21,7 +21,7 @@ export class Card extends Node {
         this.frontImageSprite = new Sprite(`images/${frontImagePath}`);
         this.frontImageSprite.appendTo(this.element);
 
-        this.flipCardHandler = flipCardHandler.bind(this); 
+        this.flipCardHandler = flipCardHandler.bind(this);
         this.element.addEventListener('click', () => this.flipCardHandler(cardNumber));
     }
 

@@ -11,9 +11,6 @@ export class Message extends Node {
         this.element.style.textShadow = '0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff';
 
         this.element.style.position = 'absolute';
-        this.element.style.left = '50%';
-        this.element.style.top = '50%';
-        this.element.style.transform = 'translate(50%, 620%)';
         this.element.style.width = 'max-content'; 
         this.element.style.height = 'max-content';  
     }

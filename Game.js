@@ -1,7 +1,7 @@
 import { Node } from './Engine/Node.js';
 import { Card } from './Card.js';
 import { Message } from './Message.js';
-import { Label} from './Engine/Label.js';
+import { Label } from './Engine/Label.js';
 export class Game {
     constructor(body) {
         this.gameBoard = new Node('div', 'game-board');
@@ -84,8 +84,8 @@ export class Game {
                     const card = new Card(cardNumber, frontImagePath, this.shuffledCards[index], this.flipCard.bind(this));
                     card.setBackgroundImage();
                     card.element.style.position = 'absolute';
-                    card.element.style.left = `${windowWidth /8}px`
-                    card.element.style.top = `${windowHeight /5}px`
+                    card.element.style.left = `${windowWidth / 8}px`
+                    card.element.style.top = `${windowHeight / 5}px`
                     this.gameBoard.element.appendChild(card.element);
                     card.element.style.zIndex = initialCardZIndex;
                     gsap.to(card.element, {
@@ -146,7 +146,7 @@ export class Game {
         const [index1, index2] = this.currentlyFlipped;
         const card1 = document.querySelector(`.card[data-index="${index1}"]`);
         const card2 = document.querySelector(`.card[data-index="${index2}"]`);
-    
+
         if (this.shuffledCards[index1 - 1] === this.shuffledCards[index2 - 1]) {
             card1.removeEventListener('click', () => this.flipCard(index1));
             card2.removeEventListener('click', () => this.flipCard(index2));
@@ -154,14 +154,20 @@ export class Game {
             this.currentlyFlipped = [];
             this.matchedPairs++;
             this.coins += 1000;
-    
-            gsap.to([card1, card2], {
+
+            gsap.to(card1, {
                 scale: 2,
                 duration: 1,
                 onComplete: () => {
                     card1.style.visibility = 'hidden';
+                },
+            });
+
+            gsap.to(card2, {
+                scale: 2,
+                duration: 1,
+                onComplete: () => {
                     card2.style.visibility = 'hidden';
-    
                     if (this.matchedPairs === this.shuffledCards.length / 2) {
                         this.gameBoard.element.style.display = 'none';
                         const winMessage = new Message(`Congratulations! You won the game with ${this.coins} Coins!`, 'green');
@@ -181,19 +187,18 @@ export class Game {
                 this.openedCards = [];
                 this.currentlyFlipped = [];
 
-            // Reset flips when two cards have been processed
-            if (this.openedCards.length === 2) {
-                this.openedCards = [];
-            }
+                if (this.openedCards.length === 2) {
+                    this.openedCards = [];
+                }
             }, 500);
             this.openedCards = [];
             this.coins -= 500;
-    
+
             if (this.coins <= 0) {
                 this.gameBoard.element.style.display = 'none';
                 const losingMessage = new Message('Game Over! You ran out of coins.', 'black');
                 this.body.appendChild(losingMessage.element);
-    
+
                 setTimeout(() => {
                     losingMessage.element.style.display = 'none';
                     this.gameBoard.element.style.display = 'grid';
@@ -202,13 +207,13 @@ export class Game {
             }
         }
         this.updateCoin();
-        
+
     }
     flipCardBackHandler(index) {
         const card = document.querySelector(`.card[data-index="${index}"]`);
         gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlipBack(card) });
     }
-    
+
     finishFlipBack(card) {
         card.style.backgroundImage = 'url(images/front.png)';
         gsap.to(card, { scaleX: 1, duration: 0.5 });
