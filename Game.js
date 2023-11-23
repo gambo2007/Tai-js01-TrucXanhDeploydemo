@@ -8,7 +8,6 @@ export class Game {
         this.coins = 10000;
         this.openedCards = [];
         this.matchedPairs = 0;
-        this.shuffledCards = this.shuffle(this.allCards);
         this.body = body;
         this.flipsThisTurn = 0;
         this.currentlyFlipped = []
@@ -77,10 +76,10 @@ export class Game {
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 const index = row * cols + col;
-                if (index < this.shuffledCards.length) {
+                if (index < this.allCards.length) {
                     const cardNumber = index + 1;
                     const frontImagePath = 'front.png';
-                    const card = new Card(cardNumber, frontImagePath, this.shuffledCards[index], this.flipCard.bind(this));
+                    const card = new Card(cardNumber, frontImagePath, this.allCards[index], this.flipCard.bind(this));
                     card.setBackgroundImage();
                     card.element.style.position = 'absolute';
                     card.element.style.left = `${windowWidth / 8}px`
@@ -123,7 +122,7 @@ export class Game {
             this.isFlipping = true;
             const card = document.querySelector(`.card[data-index="${index}"]`);
             const image = new Image();
-            image.src = `images/${this.shuffledCards[index - 1]}`;
+            image.src = `images/${this.allCards[index - 1]}`;
 
             image.onload = function () {
                 gsap.to(card, { scaleX: 0, onComplete: () => this.finishFlip(card, image.src, index) });
@@ -155,7 +154,7 @@ export class Game {
         const card1 = document.querySelector(`.card[data-index="${index1}"]`);
         const card2 = document.querySelector(`.card[data-index="${index2}"]`);
 
-        if (this.shuffledCards[index1 - 1] === this.shuffledCards[index2 - 1]) {
+        if (this.allCards[index1 - 1] === this.allCards[index2 - 1]) {
             card1.removeEventListener('click', () => this.flipCard(index1));
             card2.removeEventListener('click', () => this.flipCard(index2));
             this.openedCards = [];
@@ -175,7 +174,7 @@ export class Game {
                 duration: 1,
                 onComplete: () => {
                     card2.style.visibility = 'hidden';
-                    if (this.matchedPairs === this.shuffledCards.length / 2) {
+                    if (this.matchedPairs === this.allCards.length / 2) {
                         gsap.to({}, {
                             onComplete: () => {
                                 this.gameBoard.element.style.display = 'none';
@@ -267,7 +266,7 @@ export class Game {
     }
 
     resetGame() {
-        this.shuffledCards = this.shuffle([...this.allCards]);
+        this.allCards = this.getAllCards();
         this.openedCards = [];
         this.matchedPairs = 0;
         this.coins = 10000;
