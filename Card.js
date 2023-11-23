@@ -13,7 +13,7 @@ export class Card extends Node {
         this.element.style.cursor = 'pointer';
         this.element.style.textAlign = 'center';
         this.element.style.lineHeight = '100px';
-        this.element.style.opacity = '0.8'
+        this.element.style.opacity = '0.8';
 
         this.imageSprite = new Sprite(`images/${imagePath}`);
         this.imageSprite.appendTo(this.element);
@@ -22,11 +22,13 @@ export class Card extends Node {
         this.frontImageSprite.appendTo(this.element);
 
         this.flipCardHandler = flipCardHandler.bind(this);
-        this.element.addEventListener('click', () => this.flipCardHandler(cardNumber));
+
+        this.frontImageSprite.image.addEventListener('load', () => {
+            this.element.addEventListener('click', () => this.flipCardHandler(cardNumber));
+        });
     }
 
-    async setBackgroundImage() {
-        await this.frontImageSprite.onLoad();
+    setBackgroundImage() {
         this.element.style.backgroundImage = `url(${this.frontImageSprite.image.src})`;
     }
 

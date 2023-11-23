@@ -228,7 +228,6 @@ export class Game {
             console.error('Coin element not found.');
             return;
         }
-        console.log('Current coins:', this.coins);
         this.coin.element.textContent = `Coins: ${this.coins}`;
         this.coin.element.style.fontFamily = 'sans-serif';
         this.coin.element.style.fontSize = '45px';

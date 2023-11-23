@@ -5,7 +5,6 @@ export class Label extends Node {
         super('div', 'label');
         this.element.textContent = text;
         Object.assign(this.element.style, style);
-        console.log('Label initialized.');
     }
 
     static createMessage(text, color) {
