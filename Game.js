@@ -124,9 +124,9 @@ export class Game {
             const card = document.querySelector(`.card[data-index="${index}"]`);
             const image = new Image();
             image.src = `images/${this.shuffledCards[index - 1]}`;
-    
+
             image.onload = function () {
-                gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlip(card, image.src, index) });
+                gsap.to(card, { scaleX: 0, onComplete: () => this.finishFlip(card, image.src, index) });
             }.bind(this);
         }
     }
@@ -137,9 +137,16 @@ export class Game {
         this.openedCards.push(index);
         this.currentlyFlipped.push(index);
         this.isFlipping = false;
-    
         if (this.currentlyFlipped.length === 2) {
-            setTimeout(this.checkMatch.bind(this), 500);
+            const startTime = performance.now();
+            const checkMatchAfterDelay = (timestamp) => {
+                if (timestamp - startTime < 1000) {
+                    requestAnimationFrame(checkMatchAfterDelay);
+                } else {
+                    this.checkMatch();
+                }
+            };
+            requestAnimationFrame(checkMatchAfterDelay);
         }
     }
 
@@ -155,56 +162,73 @@ export class Game {
             this.currentlyFlipped = [];
             this.matchedPairs++;
             this.coins += 1000;
-
             gsap.to(card1, {
-                scale: 2,opacity: 0,
+                scale: 2, opacity: 0,
                 duration: 1,
                 onComplete: () => {
                     card1.style.visibility = 'hidden';
                 },
             });
-
             gsap.to(card2, {
-                scale: 2,opacity: 0,
+                scale: 2,
+                opacity: 0,
                 duration: 1,
                 onComplete: () => {
                     card2.style.visibility = 'hidden';
                     if (this.matchedPairs === this.shuffledCards.length / 2) {
-                        this.gameBoard.element.style.display = 'none';
-                        const winMessage = Label.createMessage(`Congratulations! You won the game with ${this.coins} Coins!`, 'green');
-                        document.body.appendChild(winMessage.element);
-                        setTimeout(() => {
-                            winMessage.element.style.display = 'none';
-                            this.gameBoard.element.style.display = 'grid';
-                            this.resetGame();
-                        }, 3000);
+                        gsap.to({}, {
+                            onComplete: () => {
+                                this.gameBoard.element.style.display = 'none';
+                                const winMessage = Label.createMessage(`Congratulations! You won the game with ${this.coins} Coins!`, 'green');
+                                document.body.appendChild(winMessage.element);
+                                gsap.to(winMessage.element, {
+                                    duration: 3,
+                                    onComplete: () => {
+                                        winMessage.element.style.display = 'none';
+                                        this.gameBoard.element.style.display = 'grid';
+                                        this.resetGame();
+                                    },
+                                });
+                            },
+                        });
                     }
                 },
             });
         } else {
-            setTimeout(() => {
-                this.flipCardBackHandler(index1);
-                this.flipCardBackHandler(index2);
-                this.openedCards = [];
-                this.currentlyFlipped = [];
-
-                if (this.openedCards.length === 2) {
+            this.flipCardBackHandler(index1);
+            gsap.to({}, {
+                duration: 0, onComplete: () => {
+                    this.flipCardBackHandler(index2);
                     this.openedCards = [];
+                    this.currentlyFlipped = [];
+                    if (this.openedCards.length === 2) {
+                        this.openedCards = [];
+                    }
+                    this.openedCards = [];
+                    this.coins -= 500;
                 }
-            }, 500);
-            this.openedCards = [];
-            this.coins -= 500;
+            });
 
             if (this.coins <= 0) {
                 this.gameBoard.element.style.display = 'none';
                 const losingMessage = Label.createMessage('Game Over! You ran out of coins.', 'black');
                 this.body.appendChild(losingMessage.element);
 
-                setTimeout(() => {
+                const hideMessage = () => {
                     losingMessage.element.style.display = 'none';
                     this.gameBoard.element.style.display = 'grid';
                     this.resetGame();
-                }, 3000);
+                };
+                const start = performance.now();
+
+                const animate = (timestamp) => {
+                    if (timestamp - start < 3000) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        hideMessage();
+                    }
+                };
+                requestAnimationFrame(animate);
             }
         }
         this.updateCoin();
