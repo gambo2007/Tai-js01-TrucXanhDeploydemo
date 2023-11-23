@@ -120,7 +120,7 @@ export class Game {
     }
     flipCard(index) {
         if (this.currentlyFlipped.length < 2 && !this.currentlyFlipped.includes(index) && !this.openedCards.includes(index) && !this.isFlipping) {
-            this.isFlipping = true; // Đặt biến kiểm soát để ngăn chặn lượt flip mới
+            this.isFlipping = true;
             const card = document.querySelector(`.card[data-index="${index}"]`);
             const image = new Image();
             image.src = `images/${this.shuffledCards[index - 1]}`;
@@ -136,7 +136,7 @@ export class Game {
         card.innerHTML = '';
         this.openedCards.push(index);
         this.currentlyFlipped.push(index);
-        this.isFlipping = false; // Đặt lại biến kiểm soát sau khi hoàn thành lượt flip
+        this.isFlipping = false;
     
         if (this.currentlyFlipped.length === 2) {
             setTimeout(this.checkMatch.bind(this), 500);
