@@ -12,7 +12,6 @@ export class Game {
         this.shuffledCards = this.shuffle(this.allCards);
         this.body = body;
         this.flipsThisTurn = 0;
-        this.flippedThisTurn = new Set();
         this.currentlyFlipped = []
         this.playButton = new Node('button', 'play-button');
         this.playButton.element.textContent = 'Play Game';
@@ -26,6 +25,7 @@ export class Game {
         this.playButton.element.style.top = `${window.innerHeight / 1.5}px`;
         this.playButton.element.addEventListener('click', () => this.startGame());
         document.body.appendChild(this.playButton.element);
+        this.isFlipping = false;
     }
 
     startGame() {
@@ -120,11 +120,12 @@ export class Game {
         }
     }
     flipCard(index) {
-        if (this.currentlyFlipped.length < 2 && !this.currentlyFlipped.includes(index) && !this.openedCards.includes(index)) {
+        if (this.currentlyFlipped.length < 2 && !this.currentlyFlipped.includes(index) && !this.openedCards.includes(index) && !this.isFlipping) {
+            this.isFlipping = true; // Đặt biến kiểm soát để ngăn chặn lượt flip mới
             const card = document.querySelector(`.card[data-index="${index}"]`);
             const image = new Image();
             image.src = `images/${this.shuffledCards[index - 1]}`;
-
+    
             image.onload = function () {
                 gsap.to(card, { scaleX: 0, duration: 0.5, onComplete: () => this.finishFlip(card, image.src, index) });
             }.bind(this);
@@ -136,7 +137,8 @@ export class Game {
         card.innerHTML = '';
         this.openedCards.push(index);
         this.currentlyFlipped.push(index);
-
+        this.isFlipping = false; // Đặt lại biến kiểm soát sau khi hoàn thành lượt flip
+    
         if (this.currentlyFlipped.length === 2) {
             setTimeout(this.checkMatch.bind(this), 500);
         }
