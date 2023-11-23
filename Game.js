@@ -1,6 +1,5 @@
 import { Node } from './Engine/Node.js';
 import { Card } from './Card.js';
-import { Message } from './Message.js';
 import { Label } from './Engine/Label.js';
 export class Game {
     constructor(body) {
@@ -158,7 +157,7 @@ export class Game {
             this.coins += 1000;
 
             gsap.to(card1, {
-                scale: 2,
+                scale: 2,opacity: 0,
                 duration: 1,
                 onComplete: () => {
                     card1.style.visibility = 'hidden';
@@ -166,13 +165,13 @@ export class Game {
             });
 
             gsap.to(card2, {
-                scale: 2,
+                scale: 2,opacity: 0,
                 duration: 1,
                 onComplete: () => {
                     card2.style.visibility = 'hidden';
                     if (this.matchedPairs === this.shuffledCards.length / 2) {
                         this.gameBoard.element.style.display = 'none';
-                        const winMessage = new Message(`Congratulations! You won the game with ${this.coins} Coins!`, 'green');
+                        const winMessage = Label.createMessage(`Congratulations! You won the game with ${this.coins} Coins!`, 'green');
                         document.body.appendChild(winMessage.element);
                         setTimeout(() => {
                             winMessage.element.style.display = 'none';
@@ -198,7 +197,7 @@ export class Game {
 
             if (this.coins <= 0) {
                 this.gameBoard.element.style.display = 'none';
-                const losingMessage = new Message('Game Over! You ran out of coins.', 'black');
+                const losingMessage = Label.createMessage('Game Over! You ran out of coins.', 'black');
                 this.body.appendChild(losingMessage.element);
 
                 setTimeout(() => {
